@@ -1,13 +1,24 @@
 require 'spec_helper'
 require 'checkout'
 require 'discount'
-require 'discounts'
+require 'discount_list'
 
 RSpec.describe Checkout do
   describe '#total' do
+    let(:discount_list) { DiscountList.new }
+    before do
+      apple_discount = Discount.new(:apple, 2, 1)
+      pear_discount = Discount.new(:pear, 2, 1)
+      banana_discount = Discount.new(:banana, 1, 0.5)
+      mango_discount = Discount.new(:mango, 3, 1)
+      discount_list.add(apple_discount)
+      discount_list.add(pear_discount)
+      discount_list.add(banana_discount)
+      discount_list.add(mango_discount)
+    end
     subject(:total) { checkout.total }
 
-    let(:checkout) { Checkout.new(pricing_rules) }
+    let(:checkout) { Checkout.new(pricing_rules, discount_list) }
     let(:pricing_rules) {
       {
         apple: 10,
@@ -30,57 +41,58 @@ RSpec.describe Checkout do
       end
     end
 
-    # context 'when a two for 1 applies on apples' do
-    #   before do
-    #     checkout.scan(:apple)
-    #     checkout.scan(:apple)
-    #   end
+    context 'when a two for 1 applies on apples' do
+      before do
+        checkout.scan(:apple)
+        checkout.scan(:apple)
+      end
 
-    #   it 'returns the discounted price for the basket' do
-    #     expect(total).to eq(10)
-    #   end
+      it 'returns the discounted price for the basket' do
+        expect(total).to eq(10)
+      end
 
-    #   context 'and there are other items' do
-    #     before do
-    #       checkout.scan(:orange)
-    #     end
+      context 'and there are other items' do
+        before do
+          checkout.scan(:orange)
+        end
 
-    #     it 'returns the correctly discounted price for the basket' do
-    #       expect(total).to eq(30)
-    #     end
-    #   end
-    # end
+        it 'returns the correctly discounted price for the basket' do
+          expect(total).to eq(30)
+        end
+      end
+    end
 
-    # context 'when a two for 1 applies on pears' do
-    #   before do
-    #     checkout.scan(:pear)
-    #     checkout.scan(:pear)
-    #   end
+    context 'when a two for 1 applies on pears' do
+      before do
+        print discount_list.item_lookup(:pear).show
+        checkout.scan(:pear)
+        checkout.scan(:pear)
+      end
 
-    #   it 'returns the discounted price for the basket' do
-    #     expect(total).to eq(15)
-    #   end
+      it 'returns the discounted price for the basket' do
+        expect(total).to eq(15)
+      end
 
-    #   context 'and there are other discounted items' do
-    #     before do
-    #       checkout.scan(:banana)
-    #     end
+      context 'and there are other discounted items' do
+        before do
+          checkout.scan(:banana)
+        end
 
-    #     it 'returns the correctly discounted price for the basket' do
-    #       expect(total).to eq(30)
-    #     end
-    #   end
-    # end
+        it 'returns the correctly discounted price for the basket' do
+          expect(total).to eq(30)
+        end
+      end
+    end
 
-    # context 'when a half price offer applies on bananas' do
-    #   before do
-    #     checkout.scan(:banana)
-    #   end
+    context 'when a half price offer applies on bananas' do
+      before do
+        checkout.scan(:banana)
+      end
 
-    #   it 'returns the discounted price for the basket' do
-    #     expect(total).to eq(15)
-    #   end
-    # end
+      it 'returns the discounted price for the basket' do
+        expect(total).to eq(15)
+      end
+    end
 
     # context 'when a half price offer applies on pineapples restricted to 1 per customer' do
     #   before do
@@ -93,14 +105,14 @@ RSpec.describe Checkout do
     #   end
     # end
 
-    # context 'when a buy 3 get 1 free offer applies to mangos' do
-    #   before do
-    #     4.times { checkout.scan(:mango) }
-    #   end
+    context 'when a buy 3 get 1 free offer applies to mangos' do
+      before do
+        4.times { checkout.scan(:mango) }
+      end
 
-    #   it 'returns the discounted price for the basket' do
-    #     expect(total).to eq(600)
-    #   end
-    # end
+      it 'returns the discounted price for the basket' do
+        expect(total).to eq(600)
+      end
+    end
   end
 end

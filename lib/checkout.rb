@@ -1,49 +1,33 @@
 class Checkout
-  attr_reader :prices
+  attr_reader :prices, :basket, :discount_list
   private :prices
 
-  def initialize(prices)
+  def initialize(prices, discount_list = {})
     @prices = prices
+    @basket = Hash.new
+    @discount_list = discount_list
   end
 
   def scan(item)
-    basket << item.to_sym
+    basket[item] ? basket[item] += 1 : basket[item] = 1
   end
 
   def total
     total = 0
 
-    basket.inject(Hash.new(0)) { |items, item| items[item] += 1; items }.each do |item, count|
-      if item == :apple || item == :pear
-        if (count % 2 == 0)
-          total += prices.fetch(item) * (count / 2)
-        else
-          total += prices.fetch(item) * count
-        end
-      elsif item == :banana || item == :pineapple
-        if item == :pineapple
-          total += (prices.fetch(item) / 2)
-          total += (prices.fetch(item)) * (count - 1)
-        else
-          total += (prices.fetch(item) / 2) * count
-        end
-      elsif item == :mango
-        if (count > 2)
-          total += prices.fetch(item) * (count - (count / 3))
-        else
-          total += prices.fetch(item) * count
-        end
+    basket.each do |item, count|
+      if discount_list.item_lookup(item) && count >= discount_list.item_lookup(item).quantity
+        total += prices.fetch(item) * count - (discount_list.item_lookup(item).discount * prices.fetch(item) * (count / discount_list.item_lookup(item).quantity))
       else
         total += prices.fetch(item) * count
       end
     end
-
     total
   end
 
-  private
+  # private
 
-  def basket
-    @basket ||= Array.new
-  end
+  # def basket
+  #   @basket ||= Hash.new
+  # end
 end

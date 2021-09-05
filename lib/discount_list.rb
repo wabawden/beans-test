@@ -16,4 +16,13 @@ class DiscountList
     def show
         @discounts.each{|discount| discount.show }
     end
+
+    def item_lookup(item)
+        @discounts.each do |discount|
+          if discount.item == item
+            return discount
+          end
+        end
+        return false
+    end
 end
