@@ -11,10 +11,14 @@ RSpec.describe Checkout do
       pear_discount = Discount.new(:pear, 2, 1)
       banana_discount = Discount.new(:banana, 1, 0.5)
       mango_discount = Discount.new(:mango, 3, 1)
+      pineapple_discount = Discount.new(:pineapple, 1, 0.5, 1)
+      kiwi_discount = Discount.new(:kiwi, 1, 0.5, 3)
       discount_list.add(apple_discount)
       discount_list.add(pear_discount)
       discount_list.add(banana_discount)
       discount_list.add(mango_discount)
+      discount_list.add(pineapple_discount)
+      discount_list.add(kiwi_discount)
     end
     subject(:total) { checkout.total }
 
@@ -26,7 +30,8 @@ RSpec.describe Checkout do
         pear: 15,
         banana: 30,
         pineapple: 100,
-        mango: 200
+        mango: 200,
+        kiwi: 100
       }
     }
 
@@ -64,7 +69,6 @@ RSpec.describe Checkout do
 
     context 'when a two for 1 applies on pears' do
       before do
-        print discount_list.item_lookup(:pear).show
         checkout.scan(:pear)
         checkout.scan(:pear)
       end
@@ -94,16 +98,26 @@ RSpec.describe Checkout do
       end
     end
 
-    # context 'when a half price offer applies on pineapples restricted to 1 per customer' do
-    #   before do
-    #     checkout.scan(:pineapple)
-    #     checkout.scan(:pineapple)
-    #   end
+    context 'when a half price offer applies on pineapples restricted to 1 per customer' do
+      before do
+        checkout.scan(:pineapple)
+        checkout.scan(:pineapple)
+      end
 
-    #   it 'returns the discounted price for the basket' do
-    #     expect(total).to eq(150)
-    #   end
-    # end
+      it 'returns the discounted price for the basket' do
+        expect(total).to eq(150)
+      end
+    end
+
+    context 'when a half price offer applies on kiwis restricted to 3 per customer' do
+        before do
+          4.times { checkout.scan(:kiwi) }
+        end
+
+      it 'returns the discounted price for the basket' do
+        expect(total).to eq(250)
+      end
+    end
 
     context 'when a buy 3 get 1 free offer applies to mangos' do
       before do
